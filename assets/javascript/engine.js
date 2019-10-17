@@ -35,15 +35,52 @@ function component(width, height, color, x, y){
   this.y = y;
   this.speedX = 0;
   this.speedY = 0;
+  this.HDirection = '';
+  this.VDirection = '';
   this.update = function(){
     ctx = gameArea.context;
     ctx.fillStyle = color;
     ctx.fillRect(this.x, this.y, this.width, this.height);
+    this.setHDirection();
+    this.setVDirection();
   }
 
   this.newPosition = function(){
     this.x += this.speedX;
     this.y += this.speedY;
+  }
+
+  this.getDirection = function(){
+    if(this.speedX > 0){
+      return 'right';
+    }
+    if(this.speedX < 0){
+      return 'left';
+    }
+    if(this.speedY > 0){
+      return 'bottom';
+    }
+    if(this.speedY < 0){
+      return 'top';
+    }
+  }
+
+  this.setHDirection = function(){
+    if(this.speedX > 0){
+      this.HDirection = 'right';
+    }
+    if(this.speedX < 0){
+      this.HDirection = 'left';
+    }
+  }
+
+  this.setVDirection = function(){
+    if(this.speedY > 0){
+      this.VDirection = 'bottom';
+    }
+    if(this.speedY < 0){
+      this.VDirection = 'top';
+    }
   }
 
   this.borderCollision = function(){
@@ -70,24 +107,13 @@ function component(width, height, color, x, y){
     let bottomEdge = this.y + this.height;
     let foodRightEdge = food.x + this.width;
     let foodBottomEdge = food.y + this.height;
-    if(this.speedX > 0){
-      this.eatFood('right');
-    }
-    if(this.speedX < 0){
-      this.eatFood('left');
-    }
-    if(this.speedY > 0){
-      this.eatFood('bottom');
-    }
-    if(this.speedY < 0){
-      this.eatFood('top');
-    }
+    this.eatFood(this.getDirection());
   }
 
   this.eatFood = function(direction){
     if((this.x == food.x) && (this.y == food.y)){
       gameArea.context.clearRect(food.x, food.y, 10, 10);
-      head = ssnake.pop();
+      let head = ssnake.pop();
       ssnake.push(new component(10, 10, 'red', head.x, head.y));
       switch(direction){
         case 'right':
@@ -134,6 +160,10 @@ function updateGameArea() {
 }
 
 function stopMoving(){
+  let head = ssnake.pop()
+  head.setHDirection();
+  head.setVDirection();
+  ssnake.push(head);
   for(obj in ssnake){
     ssnake[obj].speedX = 0;
     ssnake[obj].speedY = 0;
@@ -141,56 +171,94 @@ function stopMoving(){
 }
 
 function moveUp(){
-  head = ssnake.pop()
+  let head = ssnake.pop();
   head.speedY -= 10;
-  head.speedX = 0;
+  head.setVDirection();
   for(obj in ssnake){
-    ssnake[obj].y = head.y + (ssnake.length - obj)*10;
-    ssnake[obj].speedY -= 10;
-    ssnake[obj].speedX = head.speedX;
-    ssnake[obj].x = head.x;
+    if(head.speedY < 0){
+      if(ssnake[obj].x == head.x){
+        ssnake[obj].y = head.y + (ssnake.length - obj)*10;
+        ssnake[obj].speedY -= 10;
+        ssnake[obj].speedX = head.speedX;
+      }else{
+        if(head.HDirection == 'right'){
+          ssnake[obj].speedX += 10;
+        }else{
+          ssnake[obj].speedX -= 10;
+        }
+      }
+    }
   }
+  head.speedX = 0;
   ssnake.push(head);
 }
 
 function moveDown(){
-  head = ssnake.pop()
+  let head = ssnake.pop()
   head.speedY += 10;
-  head.speedX = 0;
+  head.setVDirection();
   for(obj in ssnake){
-    ssnake[obj].y = head.y - (ssnake.length - obj)*10;
-    ssnake[obj].speedY += 10;
-    ssnake[obj].speedX = head.speedX;
-    ssnake[obj].x = head.x;
+    if( head.speedY > 0){
+      if(ssnake[obj].x == head.x){
+        ssnake[obj].y = head.y - (ssnake.length - obj)*10;
+        ssnake[obj].speedY += 10;
+        ssnake[obj].speedX = head.speedX;
+      }else{
+        if(head.HDirection == 'right'){
+          ssnake[obj].speedX += 10;
+        }else{
+          ssnake[obj].speedX -= 10;
+        }
+      }
+    }
   }
+  head.speedX = 0;
   ssnake.push(head);
 }
 
 function moveRight(){
-  head = ssnake.pop()
+  let head = ssnake.pop();
   head.speedX += 10;
-  head.speedY = 0;
+  head.setHDirection();
   for(obj in ssnake){
-    ssnake[obj].x = head.x - (ssnake.length - obj)*10;
-    ssnake[obj].y = head.y;
-    ssnake[obj].speedX += 10;
-    ssnake[obj].speedY = head.speedY;
+    if(head.speedX > 0){
+      if(ssnake[obj].y == head.y){
+        ssnake[obj].x = head.x - (ssnake.length - obj)*10;
+        ssnake[obj].y = head.y;
+        ssnake[obj].speedX += 10;
+      }else{
+        if(head.VDirection == 'bottom'){
+          ssnake[obj].speedY += 10;
+        }else{
+          ssnake[obj].speedY -= 10;
+        }
+      }
+    }
   }
+  head.speedY = 0;
   ssnake.push(head);
 }
 
 function moveLeft(){
-  head = ssnake.pop()
-  if( head.speedX == 0){
-    head.speedX -= 10;
-    head.speedY = 0;
-    for(obj in ssnake){
-      ssnake[obj].x = head.x + (ssnake.length - obj)*10;
-      ssnake[obj].y = head.y;
-      ssnake[obj].speedX -= 10;
-      ssnake[obj].speedY = head.speedY;
+  let head = ssnake.pop();
+  head.speedX -= 10;
+  head.setHDirection();
+  for(obj in ssnake){
+    if(head.speedX < 0){
+      if(ssnake[obj].y == head.y ){
+        ssnake[obj].x = head.x + (ssnake.length - obj)*10;
+        ssnake[obj].y = head.y;
+        ssnake[obj].speedX -= 10;
+      }else{
+        if(head.VDirection == 'bottom'){
+          ssnake[obj].speedY += 10;
+        }else{
+          ssnake[obj].speedY -= 10;
+        }
+      }
     }
   }
+  head.speedY = 0;
   ssnake.push(head);
 }
 
