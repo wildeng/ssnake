@@ -1,7 +1,6 @@
 function startGame(){
   gameArea.start();
-  pos = new randomPosition();
-  head =
+  let pos = new randomPosition();
   ssnake = [];
   for(var i=0; i<3; i++){
      ssnake.push(new component(10, 10, 'red', pos.x + 10*i, pos.y));
@@ -12,7 +11,7 @@ function startGame(){
 function foodComponent(){
   this.width = 10;
   this.height = 10;
-  pos = new randomPosition();
+  let pos = new randomPosition();
   this.x = pos.x;
   this.y = pos.y;
   this.update = function(){
@@ -23,8 +22,8 @@ function foodComponent(){
 }
 
 function randomPosition(){
-  var max = (470/10) + 1;
-  var may = (360/10) + 1;
+  let max = (470/10) + 1;
+  let may = (360/10) + 1;
   this.x = 10 * (Math.floor(Math.random() * max));
   this.y = 10 * (Math.floor(Math.random() * may));
 }
@@ -41,54 +40,96 @@ function component(width, height, color, x, y){
     ctx.fillStyle = color;
     ctx.fillRect(this.x, this.y, this.width, this.height);
   }
+
   this.newPosition = function(){
     this.x += this.speedX;
     this.y += this.speedY;
   }
-  this.checkCollision = function(food){
-    var crash = false;
-    var rightEdge = this.x + this.width;
-    var bottomEdge = this.y + this.height;
-    var foodBottom = food.y + this.height;
-    var foodRight = food.x + this.width;
-    // if((rightEdge == food.x) && (bottomEdge == food.y)){
-    //   crash = true;
-    // }
-    // if((this.x == foodRight) && (this.y == foodBottom)){
-    //   crash = true;
-    // }
+
+  this.borderCollision = function(){
+    let crash = false;
+    let rightEdge = this.x + this.width;
+    let bottomEdge = this.y + this.height;
+    let canWidth = gameArea.context.canvas.clientWidth;
+    let canHeight = gameArea.context.canvas.clientHeight;
+    if( rightEdge > canWidth ){
+      crash = true;
+    } else if (bottomEdge > canHeight) {
+      crash = true;
+    } else if (this.x < 0){
+      crash = true;
+    } else if(this.y < 0){
+      crash = true;
+    }
     return crash;
   }
-  this.borderCollision = function(){
-    var crash = false;
-    var rightEdge = this.x + this.width;
-    var bottomEdge = this.y + this.height;
-    if((rightEdge == 480) || (bottomEdge == 370)){
-      crash = true;
+
+  this.foodCollision = function(){
+    let crash = false;
+    let rightEdge = this.x + this.width;
+    let bottomEdge = this.y + this.height;
+    let foodRightEdge = food.x + this.width;
+    let foodBottomEdge = food.y + this.height;
+    if(this.speedX > 0){
+      this.eatFood('right');
     }
-    if((this.x == 0) || (this.y == 0)){
-      crash = true;
+    if(this.speedX < 0){
+      this.eatFood('left');
     }
-    return crash;
+    if(this.speedY > 0){
+      this.eatFood('bottom');
+    }
+    if(this.speedY < 0){
+      this.eatFood('top');
+    }
+  }
+
+  this.eatFood = function(direction){
+    if((this.x == food.x) && (this.y == food.y)){
+      gameArea.context.clearRect(food.x, food.y, 10, 10);
+      head = ssnake.pop();
+      ssnake.push(new component(10, 10, 'red', head.x, head.y));
+      switch(direction){
+        case 'right':
+          head.x += 10;
+          ssnake.push(head);
+          break;
+        case 'left':
+          head.x -= 10;
+          ssnake.push(head);
+          break;
+        case 'top':
+          head.y -= 10;
+          ssnake.push(head);
+          break;
+        case 'bottom':
+          head.y += 10;
+          ssnake.push(head);
+          break;
+        default:
+          break;
+      }
+      food = new foodComponent();
+    }
   }
 }
 
 function updateGameArea() {
-  // if(ssnake.borderCollision() == true){
-  //   alert('GAME OVER');
-  //   gameArea.stop();
-  // }else{
-  //   if(ssnake.checkCollision(food) == true){
-  //     alert('gnamm');
-  //   }
-    gameArea.clear();
-    stopMoving();
-    getKeyMovement(gameArea.key);
-    for(obj in ssnake){
-      ssnake[obj].newPosition();
-      ssnake[obj].update();
-    }
-    food.update();
+  head = ssnake.pop();
+  ssnake.push(head);
+  if(head.borderCollision() == true){
+    alert('GAME OVER');
+    gameArea.stop();
+  }
+  head.foodCollision();
+  gameArea.clear();
+  stopMoving();
+  getKeyMovement(gameArea.key);
+  for(obj in ssnake){
+    ssnake[obj].newPosition();
+    ssnake[obj].update();
+  }
+  food.update();
   // }
 }
 
