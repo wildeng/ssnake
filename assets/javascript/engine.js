@@ -1,8 +1,9 @@
 function startGame(){
+  const SPEED = 5;
   gameArea.start();
   let pos = new randomPosition();
   ssnake = [];
-  for(var i=0; i<3; i++){
+  for(var i=0; i<5; i++){
      ssnake.push(new component(10, 10, 'red', pos.x + 10*i, pos.y));
   }
   food = new foodComponent();
@@ -181,10 +182,16 @@ function moveUp(){
         ssnake[obj].speedY -= 10;
         ssnake[obj].speedX = head.speedX;
       }else{
-        if(head.HDirection == 'right'){
+        switch (head.HDirection) {
+          case 'right':
+            ssnake[obj].speedX += 10;
+            break;
+          case 'left':
+            ssnake[obj].speedX -= 10;
+            break;
+          default:
           ssnake[obj].speedX += 10;
-        }else{
-          ssnake[obj].speedX -= 10;
+          break;
         }
       }
     }
@@ -204,10 +211,16 @@ function moveDown(){
         ssnake[obj].speedY += 10;
         ssnake[obj].speedX = head.speedX;
       }else{
-        if(head.HDirection == 'right'){
+        switch (head.HDirection) {
+          case 'right':
+            ssnake[obj].speedX += 10;
+            break;
+          case 'left':
+            ssnake[obj].speedX -= 10;
+            break;
+          default:
           ssnake[obj].speedX += 10;
-        }else{
-          ssnake[obj].speedX -= 10;
+          break;
         }
       }
     }
@@ -286,8 +299,8 @@ function getKeyMovement(key_code){
 var gameArea = {
   canvas: document.createElement("canvas"),
   start: function(){
-    this.canvas.width = 480;
-    this.canvas.height = 370;
+    this.canvas.width = 580;
+    this.canvas.height = 470;
     this.context = this.canvas.getContext("2d");
     document.body.insertBefore(this.canvas, document.body.childNodes[0]);
     this.interval = setInterval(updateGameArea, 20);
