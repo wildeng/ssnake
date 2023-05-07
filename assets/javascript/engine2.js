@@ -31,6 +31,9 @@ function generateFoodPosition(){
   let may = (400/grid) + 1;
   foodPosition.x = grid * (Math.floor(Math.random() * max));
   foodPosition.y = grid * (Math.floor(Math.random() * may));
+  if (foodPosition.x >= 400 || foodPosition.y >= 400) {
+    generateFoodPosition()
+  }
 }
 
 function drawFood() {
@@ -60,7 +63,7 @@ function gameLoop(){
   if (snake.x == foodPosition.x && snake.y == foodPosition.y) {
     snake.maxCells++;
     score.food++;
-    console.log(score.food);
+    console.log(foodPosition);
     foodPosition.x = 0;
     foodPosition.y = 0;
   }
