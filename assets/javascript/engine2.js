@@ -4,13 +4,15 @@ var gameContext = gameArea.getContext("2d");
 var grid = 16;
 var counter = 0;
 
-var randomPosition = function(){
-  let max = (400/grid) + 1;
-  let may = (400/grid) + 1;
-  this.x = grid * (Math.floor(Math.random() * max));
-  this.y = grid * (Math.floor(Math.random() * may));
+
+var foodPosition = {
+  x: 0,
+  y: 0
 }
 
+var score = {
+  food: 0,
+}
 var snake = {
 
   x: 160,
@@ -22,6 +24,18 @@ var snake = {
   cells: [],
 
   maxCells: 4
+}
+
+function generateFoodPosition(){
+  let max = (400/grid) + 1;
+  let may = (400/grid) + 1;
+  foodPosition.x = grid * (Math.floor(Math.random() * max));
+  foodPosition.y = grid * (Math.floor(Math.random() * may));
+}
+
+function drawFood() {
+  gameContext.fillStyle = 'red';
+  gameContext.fillRect(foodPosition.x, foodPosition.y, grid-1, grid-1);
 }
 
 function gameLoop(){
@@ -36,6 +50,20 @@ function gameLoop(){
   snake.x += snake.speedX;
   snake.y += snake.speedY;
 
+  if (foodPosition.x == 0 && foodPosition.y == 0) {
+    generateFoodPosition();
+    drawFood();
+  } else {
+    drawFood();
+  }
+
+  if (snake.x == foodPosition.x && snake.y == foodPosition.y) {
+    snake.maxCells++;
+    score.food++;
+    console.log(score.food);
+    foodPosition.x = 0;
+    foodPosition.y = 0;
+  }
   snake.cells.unshift({x: snake.x, y: snake.y});
 
   if(snake.cells.length > snake.maxCells){
@@ -65,31 +93,28 @@ function gameLoop(){
 }
 
 window.addEventListener('keydown', function(e){
-  gameArea.key = e.keyCode;
-  switch(e.keyCode){
-    // move left
-    case 37:
+  gameArea.key = e.key;
+
+  switch(e.key) {
+    case 'ArrowLeft':
       if(snake.speedX === 0){
         snake.speedX = -grid;
         snake.speedY = 0;
       }
       break;
-    // move up
-    case 38:
+    case 'ArrowUp':
       if(snake.speedY === 0){
         snake.speedX = 0;
         snake.speedY = -grid;
       }
       break;
-    // move right
-    case 39:
+    case 'ArrowRight':
       if(snake.speedX === 0){
         snake.speedX = grid;
         snake.speedY = 0;
       }
       break;
-    // move down
-    case 40:
+    case 'ArrowDown':
       if(snake.speedY === 0){
         snake.speedX = 0;
         snake.speedY = grid;
@@ -97,5 +122,6 @@ window.addEventListener('keydown', function(e){
       break;
   }
 });
+// requestAnimationFrame(gameLoop);
 
-requestAnimationFrame(gameLoop);
+gameLoop()
