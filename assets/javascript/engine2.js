@@ -12,7 +12,9 @@ var foodPosition = {
 
 var score = {
   food: 0,
+  previous: 0,
 }
+
 var snake = {
 
   x: 160,
@@ -23,7 +25,10 @@ var snake = {
 
   cells: [],
 
-  maxCells: 4
+  maxCells: 4,
+
+  speed: 15,
+  minSpeed: 5
 }
 
 function generateFoodPosition(){
@@ -32,7 +37,10 @@ function generateFoodPosition(){
   foodPosition.x = grid * (Math.floor(Math.random() * max));
   foodPosition.y = grid * (Math.floor(Math.random() * may));
   if (foodPosition.x >= 400 || foodPosition.y >= 400) {
-    generateFoodPosition()
+    generateFoodPosition();
+  }
+  if (checkCellPosition(snake.cells, foodPosition)) {
+    generateFoodPosition();
   }
 }
 
@@ -41,10 +49,47 @@ function drawFood() {
   gameContext.fillRect(foodPosition.x, foodPosition.y, grid-1, grid-1);
 }
 
+function checkCellPosition(snakeCells, cell) {
+  if (typeof snakeCells === undefined) {
+    return false;
+  }
+  const map = new Map();
+  snakeCells.forEach(obj => map.set(`${obj.x}-${obj.y}`, obj));
+  const result = map.get(`${cell.x}-${cell.y}`);
+  if (result) {
+    return true
+  }
+  return false
+}
+
+function checkCollisions() {
+  if (snake.x < 0 || snake.x >= gameArea.width || snake.y < 0 || snake.y >= gameArea.height ) {
+    return true;
+  }
+  for (let i = 1; i < snake.cells.length; i++) {
+    if (snake.x === snake.cells[i].x && snake.y === snake.cells[i].y) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function speedIncrease() {
+  if (score.food > 0 && score.previous != score.food){
+    if(score.food % 10 == 0 && snake.speed >= snake.minSpeed) {
+      snake.speed -= 2;
+      score.previous = score.food
+    }
+  }
+}
 function gameLoop(){
   requestAnimationFrame(gameLoop);
+  speedIncrease();
+  if (checkCollisions()) {
+    return;
+  }
 
-  if(++counter < 8){
+  if(++counter < snake.speed){
     return;
   }
   counter = 0;
@@ -63,7 +108,6 @@ function gameLoop(){
   if (snake.x == foodPosition.x && snake.y == foodPosition.y) {
     snake.maxCells++;
     score.food++;
-    console.log(foodPosition);
     foodPosition.x = 0;
     foodPosition.y = 0;
   }
@@ -125,6 +169,5 @@ window.addEventListener('keydown', function(e){
       break;
   }
 });
-// requestAnimationFrame(gameLoop);
 
 gameLoop()
