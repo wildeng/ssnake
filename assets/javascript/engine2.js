@@ -28,8 +28,12 @@ var snake = {
   maxCells: 4,
 
   speed: 15,
-  minSpeed: 5
+  minSpeed: 5,
+
+  gameStarted: false
 }
+
+
 
 function generateFoodPosition(){
   let max = (400/grid) + 1;
@@ -38,8 +42,7 @@ function generateFoodPosition(){
   foodPosition.y = grid * (Math.floor(Math.random() * may));
   if (foodPosition.x >= 400 || foodPosition.y >= 400) {
     generateFoodPosition();
-  }
-  if (checkCellPosition(snake.cells, foodPosition)) {
+  } else if (checkCellPosition(snake.cells, foodPosition)) {
     generateFoodPosition();
   }
 }
@@ -82,10 +85,25 @@ function speedIncrease() {
     }
   }
 }
+
+function resetGame() {
+  snake.gameStarted = false;
+  snake.cells = [
+    {x: 176, y: 80},
+    {x: 192, y: 80},
+    {x: 208, y: 80},
+    {x: 224, y: 80}
+  ];
+  score.food = 0;
+  score.previous = 0;
+  console.log(snake);
+}
+
 function gameLoop(){
   requestAnimationFrame(gameLoop);
   speedIncrease();
   if (checkCollisions()) {
+    resetGame();
     return;
   }
 
@@ -95,8 +113,6 @@ function gameLoop(){
   counter = 0;
   gameContext.clearRect(0, 0, gameArea.width, gameArea.height);
 
-  snake.x += snake.speedX;
-  snake.y += snake.speedY;
 
   if (foodPosition.x == 0 && foodPosition.y == 0) {
     generateFoodPosition();
@@ -104,44 +120,62 @@ function gameLoop(){
   } else {
     drawFood();
   }
+  drawSnake();
+}
 
-  if (snake.x == foodPosition.x && snake.y == foodPosition.y) {
-    snake.maxCells++;
-    score.food++;
-    foodPosition.x = 0;
-    foodPosition.y = 0;
-  }
-  snake.cells.unshift({x: snake.x, y: snake.y});
+function drawSnake() {
+  
+  if (snake.gameStarted == true) {
+    snake.x += snake.speedX;
+    snake.y += snake.speedY;
+    
+    if (snake.x == foodPosition.x && snake.y == foodPosition.y) {
+      snake.maxCells++;
+      score.food++;
+      foodPosition.x = 0;
+      foodPosition.y = 0;
+    }
+    snake.cells.unshift({x: snake.x, y: snake.y});
 
-  if(snake.cells.length > snake.maxCells){
-    snake.cells.pop();
-  }
+    if(snake.cells.length > snake.maxCells){
+      snake.cells.pop();
+    }
 
-  if(snake.x > gameArea.width){
-    snake.x = 0;
-  }
+    if(snake.x > gameArea.width){
+      snake.x = 0;
+    }
 
-  if(snake.x < 0){
-    snake.x = gameArea.width;
-  }
+    if(snake.x < 0){
+      snake.x = gameArea.width;
+    }
 
-  if(snake.y > gameArea.height){
-    snake.y = 0;
-  }
+    if(snake.y > gameArea.height){
+      snake.y = 0;
+    }
 
-  if(snake.y < 0){
-    snake.y = gameArea.height;
+    if(snake.y < 0){
+      snake.y = gameArea.height;
+    }
+  } else {
+    snake.cells = [
+      {x: 176, y: 80},
+      {x: 192, y: 80},
+      {x: 208, y: 80},
+      {x: 224, y: 80}
+    ]
   }
 
   gameContext.fillStyle = 'green';
-  snake.cells.forEach(function(cell, index) {
+  snake.cells.forEach(function(cell) {
     gameContext.fillRect(cell.x, cell.y, grid-1, grid-1);
   });
 }
 
 window.addEventListener('keydown', function(e){
   gameArea.key = e.key;
-
+  if (!snake.gameStarted && e.key != " ") {
+    snake.gameStarted = true
+  }
   switch(e.key) {
     case 'ArrowLeft':
       if(snake.speedX === 0){
